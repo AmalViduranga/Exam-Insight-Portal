@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum AnalysisStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  passwordHash   String
+  fullName       String
+  role           Role     @default(USER)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastLoginAt    DateTime?
+
+  analysisJobs   AnalysisJob[]
+  results        AnalysisResult[]
+}
+
+model AnalysisJob {
+  id                    String         @id @default(uuid())
+  uploadedById          String
+  originalFileName      String
+  status                AnalysisStatus @default(PROCESSING)
+  totalRowsRead         Int            @default(0)
+  schoolsDetected       Int            @default(0)
+  subjectAttemptsParsed Int            @default(0)
+  warningCount          Int            @default(0)
+  createdAt             DateTime       @default(now())
+  completedAt           DateTime?
+
+  uploadedBy            User           @relation(fields: [uploadedById], references: [id])
+  results               AnalysisResult[]
+}
+
+model AnalysisResult {
+  id               String   @id @default(uuid())
+  analysisJobId    String
+  createdById      String
+  title            String
+  selectedSubjects Json     // array of selected subject numbers
+  createdAt        DateTime @default(now())
+
+  job              AnalysisJob @relation(fields: [analysisJobId], references: [id])
+  createdBy        User        @relation(fields: [createdById], references: [id])
+  rows             AnalysisResultRow[]
+}
+
+model AnalysisResultRow {
+  id                 String   @id @default(uuid())
+  analysisResultId   String
+  schoolId           String
+  schoolName         String
+  zone               String?
+  province           String?
+  subjectNo          String
+  totalDid           Int
+  satCount           Int
+  absentCount        Int
+  aCount             Int
+  bCount             Int
+  cCount             Int
+  sCount             Int
+  wCount             Int
+  passCount          Int
+  failCount          Int
+  passPercentage     String
+  aPercentage        String
+  bPercentage        String
+  cPercentage        String
+  sPercentage        String
+  wPercentage        String
+  absentPercentage   String
+  rank               Int
+
+  analysisResult     AnalysisResult @relation(fields: [analysisResultId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+}
