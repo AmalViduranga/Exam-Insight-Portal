@@ -16,25 +16,21 @@ async function main() {
     return;
   }
 
-  const existingAdmin = await prisma.user.findUnique({ where: { username } });
-
-  if (existingAdmin) {
-    console.log(`Admin user '${username}' already exists.`);
-    return;
-  }
-
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await prisma.user.create({
-    data: {
+  const admin = await prisma.user.upsert({
+    where: { username },
+    update: {}, // Do not update existing admin (so we don't accidentally overwrite manual password changes)
+    create: {
       username,
       passwordHash,
       fullName,
       role: 'ADMIN',
+      isActive: true,
     },
   });
 
-  console.log(`Admin user '${username}' created successfully.`);
+  console.log(`Admin user '${admin.username}' ensured successfully.`);
 }
 
 main()

@@ -19,31 +19,62 @@ A full-stack React + TypeScript + Node.js application for analyzing confidential
 ### 1. Database Setup (Neon PostgreSQL)
 1. Create a free account on [Neon](https://neon.tech).
 2. Create a new PostgreSQL database.
-3. Obtain the connection string. Ensure you add `?sslmode=require` if necessary.
+3. Obtain the connection string (pooled) and the direct connection string. Ensure you add `?sslmode=require` if necessary.
 
 ### 2. Backend Deployment (Render)
 1. Create a free account on [Render](https://render.com).
 2. Create a new "Web Service".
 3. Connect your GitHub repository.
-4. Set the Root Directory to `server`.
-5. Set Build Command: `npm install && npm run build && npx prisma generate && npx prisma migrate deploy`
-6. Set Start Command: `npm start`
-7. Set Environment Variables:
-   - `DATABASE_URL` = (Your Neon connection string)
-   - `JWT_SECRET` = (A secure random string)
-   - `PORT` = `10000`
-   - `CLIENT_URL` = (Your Vercel frontend URL, e.g. `https://your-frontend.vercel.app`)
-8. Deploy.
+4. Settings:
+   - **Root Directory**: `server`
+   - **Build Command**: `npm install && npx prisma generate && npm run build`
+   - **Start Command**: `npm run start:migrate:seed`
+5. Set Environment Variables:
+   - `DATABASE_URL` = (Neon pooled connection string)
+   - `DIRECT_URL` = (Neon direct connection string)
+   - `JWT_SECRET` = (long random secret)
+   - `JWT_EXPIRES_IN` = `8h`
+   - `ADMIN_USERNAME` = `admin`
+   - `ADMIN_PASSWORD` = (strong admin password)
+   - `ADMIN_FULL_NAME` = `System Administrator`
+   - `CLIENT_URL` = `https://your-vercel-url.vercel.app`
+   - `NODE_ENV` = `production`
+6. Deploy.
 
 ### 3. Frontend Deployment (Vercel)
 1. Create a free account on [Vercel](https://vercel.com).
 2. Create a new Project and import your repository.
-3. The framework preset should automatically detect Vite.
+3. Settings:
+   - **Root Directory**: `./`
+   - **Framework Preset**: `Vite`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
 4. Set Environment Variables:
-   - `VITE_API_URL` = (Your Render backend URL + `/api`, e.g. `https://your-backend.onrender.com/api`)
+   - `VITE_API_URL` = `https://your-render-backend.onrender.com/api`
 5. Deploy.
 
-*Note: The frontend includes a `vercel.json` for proper SPA routing.*
+## Production Readiness Checklist
+
+**Before deploy:**
+- npm run build in frontend passes
+- cd server && npx prisma generate passes
+- cd server && npm run build passes
+- Health route works locally
+- Admin seed works locally
+- Excel upload works locally
+- Reports work locally
+
+**After deploy:**
+- Render /api/health works
+- Vercel home page opens
+- Admin login works
+- Admin can create user
+- User can login
+- Excel upload works
+- Subject rankings work
+- All reports work
+- Logout works
+- Normal user cannot access admin pages
 
 ## Installation
 
